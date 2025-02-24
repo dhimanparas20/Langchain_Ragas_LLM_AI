@@ -1,3 +1,5 @@
+# uses ragas to evaluate the dataset
+
 import os
 from dotenv import load_dotenv
 from ragas import evaluate

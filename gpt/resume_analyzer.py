@@ -1,3 +1,8 @@
+#########################################################
+# Analyzes Resume and gives out ragas Metrics
+# set `OPENAI_API_KEY` in .env
+#########################################################
+
 import os
 os.system("clear")
 from dotenv import load_dotenv
@@ -30,9 +35,9 @@ from ragas.metrics import (
 #--------------------------------
 #Setting Up Global Variables
 #--------------------------------
-BASE_FILE:str = "dataset/resume.pdf"
-RAW_JSON_FILE:str = "json/raw_set_resume.json"
-OUTPUT_DATA_JSON_FILE:str = "output_resume.json"
+BASE_FILE:str = "input/dataset/resume.pdf"
+RAW_JSON_FILE:str = "input/json/rawSet_resume.json"
+OUTPUT_DATA_JSON_FILE:str = "output/resume.json"
 MODEl:str = "gpt-3.5-turbo-1106"
 TEMPERATURE:int = 0.2
 ALREDY_HAVE_DATASET:bool = False
@@ -108,7 +113,7 @@ def create_chain(retriever):
     return retrieval_chain
 
 #Invoke the chain and ask the question
-def ask_question(chain, question):
+def ask_question(chain, question,count):
     global cost,total_questions
     # Prepare the conversation history for the prompt
     # history_text = "\n".join(chat_history)
@@ -118,14 +123,14 @@ def ask_question(chain, question):
             "input": question
             # "history": history_text  # Pass the chat history to the model
         })
-    print("--------------------------------------")    
-    print(f"Total Tokens: {cb.total_tokens}")
+    print("--------------------------------------")
+    print(f"Question No.: {count}")    
+    print(f"Tokens User: {cb.total_tokens}")
     print(f"Prompt Tokens: {cb.prompt_tokens}")
     print(f"Completion Tokens: {cb.completion_tokens}")
-    print(f"Total Cost (USD): ${cb.total_cost}")    
+    print(f"Cost (USD): ${cb.total_cost}")    
     cost += cb.total_cost
     total_questions +=1
-    print("--------------------------------------")    
     
     # Store the question and response in chat history
     # chat_history.append(f"Human: {question}")
@@ -141,7 +146,9 @@ if not ALREDY_HAVE_DATASET:
 
     #Recursively Answer all the questions in the list
     for question in test_set['question']:
-        response = ask_question(chain, question)
+        count = 1
+        response = ask_question(chain, question,count)
+        count +=1
         # contxt = [docs.page_content for docs in retriever.get_relevant_documents(question)]
         context = [doc.page_content for doc in response["context"]]
         answer.append(response['answer'])

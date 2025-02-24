@@ -6,7 +6,7 @@ system("clear")
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_community.document_loaders import PyPDFLoader,TextLoader  # Using PyPDFLoader for PDF extraction
+from langchain_community.document_loaders import PyPDFLoader  # Using PyPDFLoader for PDF extraction
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.faiss import FAISS
@@ -16,26 +16,15 @@ from langchain_community.callbacks import get_openai_callback
 # Initialize chat history
 chat_history = []
 
-# Predefined set of questions
-predefined_questions = [
-    "What is the current capital of Himachal Pradesh?",
-    "What was the summer capital of British India?",
-    "Which temple was Shimla most popular for during the 19th century?",
-    "Who constructed the first British summer home in Shimla?",
-    "In what year was the Kalka-Shimla railway line constructed?",
-]
-
 # Retrieve Data from PDF
 def get_docs():
-    # loader = PyPDFLoader('ok.pdf')  # Load the PDF file
-    loader = TextLoader('nyc.txt')  # Load the PDF file
+    loader = PyPDFLoader('input/dataset/resume.pdf')  # Load the PDF file
     docs = loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=200,
         chunk_overlap=20
     )
-
     splitDocs = text_splitter.split_documents(docs)
      
     return splitDocs
@@ -52,7 +41,7 @@ def create_chain(vectorStore):
     )
 
     prompt_template = ChatPromptTemplate.from_template("""
-    Answer the asked questions based on the context provided. Here is the conversation history:
+    You are resume analyzer.Answer any question based on the resume provided. Here is the conversation history:
     {history}
     
     Context: {context}
@@ -97,16 +86,13 @@ docs = get_docs()
 vectorStore = create_vector_store(docs)
 chain = create_chain(vectorStore)
 
-# Only ask predefined questions
-answers_list = []
-for question in predefined_questions:
-    answer = ask_question(chain, question)
-    answers_list.append(answer['answer'])
-
-# Display answers in a list format
-print("\nAnswers:")
-for i, ans in enumerate(answers_list, 1):
-    print(f"{i}. {ans}")
-
-
-print(answers_list)
+# Example interaction loop
+while True:
+    user_input = input("You: ")
+    
+    if user_input.lower() in ['exit', 'quit']:
+        break
+    
+    answer = ask_question(chain, user_input)
+    
+    print(f"Assistant: {answer['answer']}")
